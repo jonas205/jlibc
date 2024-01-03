@@ -19,16 +19,16 @@ which means each library is contained in a single header file.
 You can easily add this file to a project or build system,
 and it should just work.
 
-I use Linux (Ubuntu and Arch btw) for work / personal / uni,
-so most of the testing / time is put into making it work on Linux.
-Most features should also work on Windows / MacOS,
+I use Linux (specifically Ubuntu and Arch btw) for work, personal use and uni.
+Because of this most of the testing and time is put into making it work smoothly on Linux.
+Most features should also work on Windows and MacOS,
 but they are only tested through the automated tests on Github actions.
 
 ## Usage
-This is a [stb-style](https://github.com/nothings/stb/blob/master/docs/stb_howto.txt) header-file library,
-so simply copy the relevant header into your project and use whatever build system you want.
+This is a collection of [stb-style](https://github.com/nothings/stb/blob/master/docs/stb_howto.txt) header-file libraries,
+simply copy the relevant header into your project and use whatever build system you want.
 
-Do `#define LIBRARY_NAME_IMPLEMENTATION` before you include this file in *one* C or C++ file
+Do `#define LIBRARY_NAME_IMPLEMENTATION` before you include the file in *one* C or C++ file
 to create the implementation.
 
 ```C
@@ -45,12 +45,12 @@ The examples directory contains a list of examples on how to use features of the
 The included Makefile can be used to build them, but `gcc -o example example.c` should also work.
 
 ## Tests
-The tests directory contains a number of tests programs.
-They are build using cmake so that they can be run on any OS.
+The tests directory contains a number of test programs.
+They are build using [CMake](https://cmake.org/) so that they can be run on any OS.
 
 ## Libraries
 See each specific header for documentation, also take a look at the provided examples.
 
 Library | Short description
 -|-
-`jlog.h` | Logging macros for fancy printing / easy control over log files, log levels.
+`jlog.h` | Logging macros for fancy printing and easy control over log files, log levels.

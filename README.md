@@ -36,8 +36,8 @@ to create the implementation.
 #include ...
 #include ...
 #include ...
-#define JLOG_IMPLEMENTATION  // only in one C/C++ file
-#include "jlog.h"
+#define JC_LOG_IMPLEMENTATION  // only in one C/C++ file
+#include "jc_log.h"
 ```
 
 ## Examples
@@ -53,4 +53,4 @@ See each specific header for documentation, also take a look at the provided exa
 
 Library | Short description
 -|-
-`jlog.h` | Logging macros for fancy printing and easy control over log files, log levels.
+[jc_log](docs/jc_log.md) | Logging macros for fancy printing and easy control over log files, log levels.

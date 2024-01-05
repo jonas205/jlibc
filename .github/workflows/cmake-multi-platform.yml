@@ -1,0 +1,71 @@
+name: Tests
+
+on:
+  push:
+    branches: [ "main" ]
+  pull_request:
+    branches: [ "main" ]
+
+jobs:
+  build:
+    runs-on: ${{ matrix.os }}
+
+    strategy:
+      fail-fast: true
+
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        build_type: [Release, Debug]
+        c_compiler: [gcc, clang, cl]
+        include:
+          - os: windows-latest
+            c_compiler: cl
+            cpp_compiler: cl
+            windows: 1
+          - os: ubuntu-latest
+            c_compiler: gcc
+            cpp_compiler: g++
+            linux: 1
+          - os: ubuntu-latest
+            c_compiler: clang
+            cpp_compiler: clang++
+            linux: 1
+          - os: macos-latest
+            c_compiler: clang
+            linux: 1  # Yes I know, No I don't care
+          - os: macos-latest
+            c_compiler: gcc
+            linux: 1 # Yes I know, No I don't care
+        exclude:
+          - os: windows-latest
+            c_compiler: gcc
+          - os: windows-latest
+            c_compiler: clang
+          - os: ubuntu-latest
+            c_compiler: cl
+          - os: macos-latest
+            c_compiler: cl
+
+    steps:
+    - uses: actions/checkout@v3
+    - uses: actions/setup-python@v1
+
+    - if: ${{ matrix.linux }}
+      run: bash -c "pip install cpplint && ./run_tests.sh ${{ matrix.c_compiler }} ${{ matrix.build_type }}"
+
+    - if: ${{ matrix.windows }}
+      name: Configure CMake
+      working-directory: ${{github.workspace}}/tests
+      run: >
+        cmake -B ${{github.workspace}}/build
+        -DCMAKE_C_COMPILER=${{ matrix.c_compiler }}
+
+    - if: ${{ matrix.windows }}
+      name: Build
+      working-directory: ${{github.workspace}}/tests
+      run: cmake --build ${{github.workspace}}/build --config ${{ matrix.build_type }}
+
+    - if: ${{ matrix.windows }}
+      name: Test
+      working-directory: ${{github.workspace}}/build
+      run: ctest --build-config ${{ matrix.build_type }}

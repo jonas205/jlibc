@@ -9,6 +9,7 @@
 </pre>
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![Tests](https://github.com/Jonas-205/jlibc/actions/workflows/cmake-multi-platform.yml/badge.svg)](https://github.com/Jonas-205/jlibc/actions/workflows/cmake-multi-platform.yml)
 
 </div>
 

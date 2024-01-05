@@ -24,7 +24,7 @@ int main(void) {
 
 Possible Output:
 
-![jc_log_basic_usage.png](jc_log_basic_usage.png)
+![jc_log_basic_usage.png](https://github.com/Jonas-205/jlibc/blob/main/docs/jc_log_basic_usage.png)
 
 ## Prefix
 All functions / macros included in this library have the prefix `jcl_`
@@ -65,7 +65,7 @@ jcl_assert(ptr != NULL, "Pointer is NULL, Other Variable: %d", other_variable);
 ### Coloring the shell
 This library uses [ANSI escape code](https://en.wikipedia.org/wiki/ANSI_escape_code)
 to generate color in the terminal. To make this easier there are some
-helper functions (see [colored_io](../examples/log/colored_io.c)):
+helper functions (see [colored_io](https://github.com/Jonas-205/jlibc/blob/main/examples/log/colored_io.c)):
 
 ```C
 int jcl_color_attribute(FILE *out, JclColorAttribute attr)

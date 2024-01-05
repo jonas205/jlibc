@@ -53,4 +53,4 @@ See each specific header for documentation, also take a look at the provided exa
 
 Library | Short description
 -|-
-[jc_log](docs/jc_log.md) | Logging macros for fancy printing and easy control over log files, log levels.
+[jc_log](https://github.com/Jonas-205/jlibc/blob/main/docs/jc_log.md) | Logging macros for fancy printing and easy control over log files, log levels.

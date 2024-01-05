@@ -10,7 +10,7 @@ void sigill_handler(int sig) {
 }
 
 int main(void) {
-#ifndef OS_WINDOWS  // Windows uses debug break
+#ifndef JC_LOG_WINDOWS  // Windows uses debug break
     signal(SIGILL, sigill_handler);
     die("DIE");
     return -1;

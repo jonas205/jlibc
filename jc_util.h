@@ -66,7 +66,7 @@ elif __APPLE__
 #endif
 #endif
 
-#ifndef OS_APPLE
+#ifndef JC_UTIL_APPLE
 typedef int64_t ssize_t;
 #endif
 

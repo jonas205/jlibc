@@ -4,7 +4,7 @@ set(TESTS
     str2num
 )
 
-if( WIN32 )
+if(NOT WIN32 )
     set(TESTS ${TESTS} num2str)
 endif()
 

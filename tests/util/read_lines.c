@@ -41,5 +41,9 @@ void reader(const char *line_orig, ssize_t len) {
 }
 
 int main(void) {
+#ifdef JC_UTIL_WINDOWS
+    jcl_assert(jcu_line_parser("../../util/read_lines.txt", reader), "Can not read file");
+#else
     jcl_assert(jcu_line_parser("../../../../util/read_lines.txt", reader), "Can not read file");
+#endif
 }

@@ -16,3 +16,4 @@ endif()
 
 enable_testing()
 add_subdirectory(log)
+add_subdirectory(util)

@@ -2,6 +2,15 @@
 
 set -e
 
+if [ "$#" -eq 1 ] && [ "$1" = "all" ]; then
+    for compiler in gcc clang; do
+        for mode in Debug Release; do
+            $0 $compiler $mode
+        done
+    done
+    exit 0
+fi
+
 # 0. Check inputs
 
 print_usage() {

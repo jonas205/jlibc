@@ -1,7 +1,7 @@
 .PHONY: all clean
 MAKEFLAGS += --no-print-directory
 
-SUB_DIRS = log
+SUB_DIRS = log util
 
 all:
 	@for dir in $(SUB_DIRS); do \

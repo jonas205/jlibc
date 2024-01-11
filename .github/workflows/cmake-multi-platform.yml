@@ -68,4 +68,4 @@ jobs:
     - if: ${{ matrix.windows }}
       name: Test
       working-directory: ${{github.workspace}}/build
-      run: ctest --build-config ${{ matrix.build_type }}
+      run: ctest --build-config ${{ matrix.build_type }} --rerun-failed --output-on-failure

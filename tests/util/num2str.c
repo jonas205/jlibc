@@ -21,7 +21,7 @@ void reader(const char *line, ssize_t len) {
 
 int main(void) {
 #ifdef JC_UTIL_WINDOWS
-    jcl_assert(jcu_line_parser("..\\..\\util\\num2str_data.txt", reader), "Can not read file");
+    jcl_assert(jcu_line_parser("..\\..\\..\\util\\num2str_data.txt", reader), "Can not read file");
 #else
     jcl_assert(jcu_line_parser("../../../../util/num2str_data.txt", reader), "Can not read file");
 #endif

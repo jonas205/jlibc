@@ -4,6 +4,10 @@
 #define JC_LOG_IMPLEMENTATION
 #include "../../jc_log.h"
 
+#ifdef JC_UTIL_WINDOWS
+#error "This test is not supported on Windows"
+#endif
+
 void reader(const char *line, ssize_t len) {
     (void) len;
     char buf[512];

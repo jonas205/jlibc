@@ -1,4 +1,4 @@
-/* jcl - v0.0.1 - Fancy logging in C
+/* jcl - v1.0.0 - Fancy logging in C
 
 Do this:
     #define JC_LOG_IMPLEMENTATION
@@ -148,7 +148,7 @@ typedef enum {
 } JclLevel;
 
 // Internal Logging functions
-JC_LOG_DEF int jcli__log(const char *file, uint32_t line, JclLevel level, const char *format, ...);
+JC_LOG_DEF int jcli__log(const char *file, uint32_t line, JclLevel level, bool newline, const char *format, ...);
 noreturn JC_LOG_DEF void jcli__die(void);
 
 // Log related functions
@@ -174,27 +174,32 @@ jcl_warn_unused jcl_force_inline bool jcl_file_close(void) {  // die / assert ca
 // if you want to call this because printf / fclose failed,
 // DO NOT DO THAT!!!!
 #define jcl_die(...) do { \
-    jcli__log(__FILE__, __LINE__, JCL_LEVEL_DIE, __VA_ARGS__); \
+    jcli__log(__FILE__, __LINE__, JCL_LEVEL_DIE, true, __VA_ARGS__); \
     jcli__die(); \
 } while (0)
 #endif
 
 #ifndef JC_DISABLE_LOGGING
 #ifndef jcl_trace
-#define jcl_trace(...) jcli__log(__FILE__, __LINE__, JCL_LEVEL_TRACE, __VA_ARGS__)
+#define jcl_trace(...) jcli__log(__FILE__, __LINE__, JCL_LEVEL_TRACE, true, __VA_ARGS__)
 #endif
 
 #ifndef jcl_info
-#define jcl_info(...) jcli__log(__FILE__, __LINE__, JCL_LEVEL_INFO, __VA_ARGS__)
+#define jcl_info(...) jcli__log(__FILE__, __LINE__, JCL_LEVEL_INFO, true, __VA_ARGS__)
 #endif
 
 #ifndef jcl_warn
-#define jcl_warn(...) jcli__log(__FILE__, __LINE__, JCL_LEVEL_WARN, __VA_ARGS__)
+#define jcl_warn(...) jcli__log(__FILE__, __LINE__, JCL_LEVEL_WARN, true, __VA_ARGS__)
 #endif
 
 #ifndef jcl_error
-#define jcl_error(...) jcli__log(__FILE__, __LINE__, JCL_LEVEL_ERROR, __VA_ARGS__)
+#define jcl_error(...) jcli__log(__FILE__, __LINE__, JCL_LEVEL_ERROR, true, __VA_ARGS__)
 #endif
+
+#ifndef jcl_prefix
+#define jcl_prefix(level) jcli__log(__FILE__, __LINE__, level, false, "")
+#endif
+
 #else  // JC_DISABLE_LOGGING
 #undef jcl_trace
 #define jcl_trace(...)
@@ -208,14 +213,17 @@ jcl_warn_unused jcl_force_inline bool jcl_file_close(void) {  // die / assert ca
 #undef jcl_error
 #define jcl_error(...)
 
+#undef jcl_prefix
+#define jcl_prefix(level)
+
 #endif  // JC_DISABLE_LOGGING
 
 #ifndef JC_DISABLE_ASSERTS
 #ifndef jcl_assert
 #define jcl_assert(condition, ...) \
     do { if (!(condition)) { \
-        jcli__log(__FILE__, __LINE__, JCL_LEVEL_ASSERT, #condition); \
-        jcli__log(__FILE__, __LINE__, JCL_LEVEL_ASSERT, __VA_ARGS__); \
+        jcli__log(__FILE__, __LINE__, JCL_LEVEL_ASSERT, true, #condition); \
+        jcli__log(__FILE__, __LINE__, JCL_LEVEL_ASSERT, true, __VA_ARGS__); \
         jcli__die(); \
     }} while (0)
 #endif
@@ -340,10 +348,11 @@ noreturn JC_LOG_DEF void jcli__die(void) {
 #endif  // JC_DISABLE_LOGGING_COLORS
 
 
-JC_LOG_DEF int jcli__log(const char *file, uint32_t line, JclLevel level, const char *format, ...) {
+JC_LOG_DEF int jcli__log(const char *file, uint32_t line, JclLevel level, bool newline, const char *format, ...) {
 #ifdef JC_DISABLE_LOGGING
     (void) file;
     (void) line;
+    (void) newline;
     if (level < JCL_LEVEL_DIE) {
         return 0;
     }
@@ -408,7 +417,9 @@ JC_LOG_DEF int jcli__log(const char *file, uint32_t line, JclLevel level, const 
     va_start(args, format);
     JCI__PRINTF(vfprintf(out, format, args));
     va_end(args);
-    JCI__PRINTF(fprintf(out, "\n"));
+    if (newline) {
+        JCI__PRINTF(fprintf(out, "\n"));
+    }
 
     int erg = sum;
 
@@ -418,7 +429,9 @@ JC_LOG_DEF int jcli__log(const char *file, uint32_t line, JclLevel level, const 
         va_start(args, format);
         JCI__PRINTF(vfprintf(JCI__LOG_FILE_PTR, format, args));
         va_end(args);
-        JCI__PRINTF(fprintf(JCI__LOG_FILE_PTR, "\n"));
+        if (newline) {
+            JCI__PRINTF(fprintf(JCI__LOG_FILE_PTR, "\n"));
+        }
     }
 
     return erg;

@@ -40,6 +40,9 @@ The main feature of the library are the logging functions
 They print out their message using the `printf` formatting rules, include
 some helpful information and add some color, to easily find errors / warnings.
 
+You can also call 'jc_prefix(log_level)' to just print out the fancy prefix (without a newline)
+and then use printf to format your strings.
+
 `die` also stops the program and indicates that an error has occurred.
 
 If you want to override any of these macros you can override their long versions.

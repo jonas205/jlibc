@@ -38,6 +38,7 @@ LICENSE:
 
 #ifdef __cplusplus
 extern "C" {
+#define noreturn [[noreturn]]
 #endif
 
 #include <stdio.h>
@@ -245,6 +246,7 @@ jcl_warn_unused jcl_force_inline bool jcl_file_close(void) {  // die / assert ca
 
 
 #ifdef __cplusplus
+#undef noreturn
 }
 #endif
 //
@@ -255,6 +257,7 @@ jcl_warn_unused jcl_force_inline bool jcl_file_close(void) {  // die / assert ca
 #ifdef JC_LOG_IMPLEMENTATION
 #ifdef __cplusplus
 extern "C" {
+#define noreturn [[noreturn]]
 #endif
 
 #include <time.h>
@@ -410,8 +413,11 @@ JC_LOG_DEF int jcli__log(const char *file, uint32_t line, JclLevel level, bool n
             break;
     }
     JCI__PRINTF(fprintf(out, "%s\t", jcl_level_str(level)));
+
+#ifndef JC_LOG_DISABLE_FILE_LOGGING
     JCI__SET_LOGGING_COLOR(out, JCL_COLOR_GRAY);
     JCI__PRINTF(fprintf(out, "%s:%u\t", file, line));
+#endif  // JC_LOG_DISABLE_FILE_LOGGING
     JCI__RESET_LOGGING_COLOR(out);
     va_list args;
     va_start(args, format);
@@ -439,6 +445,7 @@ JC_LOG_DEF int jcli__log(const char *file, uint32_t line, JclLevel level, bool n
 }
 
 #ifdef __cplusplus
+#undef noreturn
 }
 #endif
 #endif  // JC_LOG_IMPLEMENTATION

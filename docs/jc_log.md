@@ -111,6 +111,9 @@ To close the log file call `jcl_file_close`.
 ### JC_LOG_STATIC
 Makes all functions static, only use this if you know what you are doing, as it can lead to larger programs otherwise.
 
+### JC_LOG_DISABLE_FILE_LOGGING
+Disables the file portion of the logging prefix.
+
 ### JC_LOG_DISABLE
 Disable all logging at compile time. This can not be undone at runtime,
 as it completly removes the logging code from the binary.

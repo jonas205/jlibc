@@ -187,7 +187,7 @@ jcl_warn_unused jcl_force_inline bool jcl_file_close(void) {  // die / assert ca
 #endif
 
 #ifndef jcl_trace_fn
-#define jcl_trace_fn() jcli__log(__FILE__, __LINE__, JCL_LEVEL_TRACE, true, __func__);
+#define jcl_trace_fn() jcli__log(__FILE__, __LINE__, JCL_LEVEL_TRACE, true, "%s()", __func__);
 #endif
 
 #ifndef jcl_trace_fn_args

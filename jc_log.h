@@ -392,6 +392,10 @@ JC_LOG_DEF int jcli__write_helper(JclLevel level, bool newline, const char *form
         out = JC_LOG_STDOUT;
     }
     JCI__RESET_LOGGING_COLOR(out);
+    va_list args_copy;
+    if (JCI__LOG_FILE_PTR) {
+        va_copy(args_copy, args);
+    }
     JCI__PRINTF(vfprintf(out, format, args));
     if (newline) {
         JCI__PRINTF(fprintf(out, "\n"));
@@ -400,7 +404,7 @@ JC_LOG_DEF int jcli__write_helper(JclLevel level, bool newline, const char *form
     int erg = sum;
 
     if (JCI__LOG_FILE_PTR) {
-        JCI__PRINTF(vfprintf(JCI__LOG_FILE_PTR, format, args));
+        JCI__PRINTF(vfprintf(JCI__LOG_FILE_PTR, format, args_copy));
         if (newline) {
             JCI__PRINTF(fprintf(JCI__LOG_FILE_PTR, "\n"));
         }

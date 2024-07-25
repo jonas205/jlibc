@@ -11,8 +11,10 @@ void sigill_handler(int sig) {
 
 int main(void) {
 #ifndef JC_LOG_WINDOWS  // Windows uses debug break
+#ifndef JC_LOG_APPLE  // Die works on apple, but causes SIGTRAP
     signal(SIGILL, sigill_handler);
     die("DIE");
     return -1;
+#endif
 #endif
 }

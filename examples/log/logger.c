@@ -4,6 +4,11 @@
 #define JC_LOG_IMPLEMENTATION
 #include "../../jc_log.h"
 
+void helper(void) {
+    trace_fn();
+    trace_fn_args("(void)");
+}
+
 int main(void) {
     if (!jcl_file("logger.log")) {
         die("Could not open log file");
@@ -14,6 +19,8 @@ int main(void) {
     info("INFO");
     warn("WARN");
     error("ERROR");
+
+    helper();
 
     printf("-----------------------------------------------------------\n");
 

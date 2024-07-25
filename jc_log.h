@@ -150,6 +150,7 @@ typedef enum {
 
 // Internal Logging functions
 JC_LOG_DEF int jcli__log(const char *file, uint32_t line, JclLevel level, bool newline, const char *format, ...);
+JC_LOG_DEF int jcli__write(JclLevel level, bool newline, const char *format, ...);
 noreturn JC_LOG_DEF void jcli__die(void);
 
 // Log related functions
@@ -185,6 +186,17 @@ jcl_warn_unused jcl_force_inline bool jcl_file_close(void) {  // die / assert ca
 #define jcl_trace(...) jcli__log(__FILE__, __LINE__, JCL_LEVEL_TRACE, true, __VA_ARGS__)
 #endif
 
+#ifndef jcl_trace_fn
+#define jcl_trace_fn() jcli__log(__FILE__, __LINE__, JCL_LEVEL_TRACE, true, __func__);
+#endif
+
+#ifndef jcl_trace_fn_args
+#define jcl_trace_fn_args(...) do { \
+    jcli__log(__FILE__, __LINE__, JCL_LEVEL_TRACE, false, __func__); \
+    jcli__write(JCL_LEVEL_TRACE, true, __VA_ARGS__); \
+  } while (0);
+#endif
+
 #ifndef jcl_info
 #define jcl_info(...) jcli__log(__FILE__, __LINE__, JCL_LEVEL_INFO, true, __VA_ARGS__)
 #endif
@@ -204,6 +216,12 @@ jcl_warn_unused jcl_force_inline bool jcl_file_close(void) {  // die / assert ca
 #else  // JC_DISABLE_LOGGING
 #undef jcl_trace
 #define jcl_trace(...)
+
+#undef jcl_trace_fn
+#define jcl_trace_fn(...)
+
+#undef jcl_trace_fn_args
+#define jcl_trace_fn_args(...)
 
 #undef jcl_info
 #define jcl_info(...)
@@ -235,6 +253,8 @@ jcl_warn_unused jcl_force_inline bool jcl_file_close(void) {  // die / assert ca
 
 #ifndef JC_LOG_NO_SHORT_NAMES
 #define trace(...) jcl_trace(__VA_ARGS__)
+#define trace_fn(...) jcl_trace_fn(__VA_ARGS__)
+#define trace_fn_args(...) jcl_trace_fn_args(__VA_ARGS__)
 #define info(...) jcl_info(__VA_ARGS__)
 #define warn(...) jcl_warn(__VA_ARGS__)
 #define error(...) jcl_error(__VA_ARGS__)
@@ -350,29 +370,61 @@ noreturn JC_LOG_DEF void jcli__die(void) {
 #define JCI__RESET_LOGGING_COLOR(out) JCI__PRINTF(jcl_color_reset(out))
 #endif  // JC_DISABLE_LOGGING_COLORS
 
-
-JC_LOG_DEF int jcli__log(const char *file, uint32_t line, JclLevel level, bool newline, const char *format, ...) {
+JC_LOG_DEF int jcli__write_helper(JclLevel level, bool newline, const char *format, va_list args) {
 #ifdef JC_DISABLE_LOGGING
-    (void) file;
-    (void) line;
     (void) newline;
     if (level < JCL_LEVEL_DIE) {
         return 0;
     }
-    va_list args;
-    va_start(args, format);
     // this is only called on die and writes to stderr, return value kind of does not matter
     int written = vfprintf(JC_LOG_STDERR, format, args);
-    va_end(args);
 
     if (JCI__LOG_FILE_PTR) {
-        va_list args;
-        va_start(args, format);
         vfprintf(JCI__LOG_FILE_PTR, format, args);  // this is only called if library logging is off and die is called
-        va_end(args);
     }
 
     return written;
+#else  // JC_DISABLE_LOGGING
+    int sum = 0;
+
+    FILE *out = JC_LOG_STDERR;
+    if (level == JCL_LEVEL_INFO || level == JCL_LEVEL_TRACE) {
+        out = JC_LOG_STDOUT;
+    }
+    JCI__RESET_LOGGING_COLOR(out);
+    JCI__PRINTF(vfprintf(out, format, args));
+    if (newline) {
+        JCI__PRINTF(fprintf(out, "\n"));
+    }
+
+    int erg = sum;
+
+    if (JCI__LOG_FILE_PTR) {
+        JCI__PRINTF(vfprintf(JCI__LOG_FILE_PTR, format, args));
+        if (newline) {
+            JCI__PRINTF(fprintf(JCI__LOG_FILE_PTR, "\n"));
+        }
+    }
+
+    return erg;
+#endif  // JC_DISABLE_LOGGING
+}
+
+JC_LOG_DEF int jcli__write(JclLevel level, bool newline, const char *format, ...) {
+    va_list args;
+    va_start(args, format);
+    int erg = jcli__write_helper(level, newline, format, args);
+    va_end(args);
+    return erg;
+}
+
+JC_LOG_DEF int jcli__log(const char *file, uint32_t line, JclLevel level, bool newline, const char *format, ...) {
+#ifdef JC_DISABLE_LOGGING
+    va_list args;
+    va_start(args, format);
+    int erg = jcli__write_helper(level, newline, format, args);
+    va_end(args);
+    return erg;
 #else  // JC_DISABLE_LOGGING
     if ((level < JCI__LOG_LEVEL || !JCI__LOGGING) && (level < JCL_LEVEL_DIE)) {
         return 0;
@@ -414,31 +466,23 @@ JC_LOG_DEF int jcli__log(const char *file, uint32_t line, JclLevel level, bool n
     }
     JCI__PRINTF(fprintf(out, "%s\t", jcl_level_str(level)));
 
+    int erg = sum;
+
 #ifndef JC_LOG_DISABLE_FILE_LOGGING
     JCI__SET_LOGGING_COLOR(out, JCL_COLOR_GRAY);
     JCI__PRINTF(fprintf(out, "%s:%u\t", file, line));
 #endif  // JC_LOG_DISABLE_FILE_LOGGING
-    JCI__RESET_LOGGING_COLOR(out);
-    va_list args;
-    va_start(args, format);
-    JCI__PRINTF(vfprintf(out, format, args));
-    va_end(args);
-    if (newline) {
-        JCI__PRINTF(fprintf(out, "\n"));
-    }
-
-    int erg = sum;
 
     if (JCI__LOG_FILE_PTR) {
         JCI__PRINTF(fprintf(JCI__LOG_FILE_PTR, "%s %s\t%s:%u\t", time_str, jcl_level_str(level), file, line));
-        va_list args;
-        va_start(args, format);
-        JCI__PRINTF(vfprintf(JCI__LOG_FILE_PTR, format, args));
-        va_end(args);
-        if (newline) {
-            JCI__PRINTF(fprintf(JCI__LOG_FILE_PTR, "\n"));
-        }
     }
+
+    va_list args;
+    va_start(args, format);
+    int written = jcli__write_helper(level, newline, format, args);
+    va_end(args);
+    if (written < 0) return written;
+    erg += written;
 
     return erg;
 #endif  // JC_DISABLE_LOGGING

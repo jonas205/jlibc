@@ -19,8 +19,12 @@ QUICK NOTES:
 
 THINGS YOU CAN DEFINE:
     DEFINE EVERYWHERE:
+    - JC_MEMORY_STATIC                  Make all functions static, only use this if you know what you are doing
+    - JC_MEMORY_DISABLE                 Disables all logging (die still works and prints only the message to stderr)
 
     DEFINE IN SAME FILE AS JC_MEMORY_IMPLEMENTATION:
+    - JC_MEMORY_CANARY <uint32_t>       The Canary Bytes to be used
+    - JC_MEMORY_CANARY_REPETITION <int> How often the Canary Bytes should be added on both size
 
 LICENSE:
     See end of file for license information
@@ -132,9 +136,7 @@ extern "C" {
 #ifndef JC_MEMORY_CANARY
 #define JC_MEMORY_CANARY 0xdeadbeef
 #endif
-#ifndef JC_MEMORY_CANARY_SIZE
 #define JC_MEMORY_CANARY_SIZE 4
-#endif
 #ifndef JC_MEMORY_CANARY_REPETITION
 #define JC_MEMORY_CANARY_REPETITION 1024
 #endif
@@ -376,6 +378,7 @@ JC_MEMORY_DEF void jcm_warn_unused *jcmi__realloc(void *ptr, size_t size, const 
         #endif
 
         JCI__MEMORY_CALLBACK(&error);
+        return NULL;
     }
 
     ptr = realloc(ptr, size);

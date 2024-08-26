@@ -91,7 +91,7 @@ void callback(JcMemoryError *error) {
 ```
 
 
-## Compile Options
+## Compiler Options
 ### JC_MEMORY_STATIC
 Makes all functions static, only use this if you know what you are doing, as it can lead to larger programs otherwise.
 
@@ -102,7 +102,7 @@ Define everywhere where you include it.
 
 ### JC_MEMORY_CANARY
 Define the 4 Bytes that are used as Canary Bytes.
-They will be repeated infinitely.
+They will be repeated JC_MEMORY_CANARY_REPETITIONS times.
 
 ### JC_MEMORY_CANARY_REPETITIONS
 How often the Canary Bytes should be added on both sides.

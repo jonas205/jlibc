@@ -447,7 +447,7 @@ JC_MEMORY_DEF void jcmi__check_canary(void *ptr, const char *file, uint32_t line
     ptr = ((uint8_t *) ptr) - JC_MEMORY_CANARY_SIZE * JC_MEMORY_CANARY_REPETITION;
 
 
-    size_t old_size;
+    size_t old_size = 0;
     const char *old_file;
     uint32_t old_line;
 

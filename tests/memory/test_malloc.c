@@ -11,7 +11,7 @@ void callback(JcMemoryError *error) {
                       "%lu Bytes allocated here but not freed", error->size);
 
             if (missing_free != 0) {
-                jcl_assert(error->line == 46, "Not the right malloc detected");
+                jcl_assert(error->line == 48, "Not the right malloc detected");
                 missing_free = 0;
                 return;
             }
@@ -37,8 +37,10 @@ int main(void) {
     char *foo = (char *) malloc(10);
     free(foo);
 
+    #ifndef JC_MEMORY_DISABLE
     char *bar = (char *) malloc(0);
     free(bar);
+    #endif
 
     jcm_destroy();
     jcm_create(&callback);
@@ -48,6 +50,8 @@ int main(void) {
 
     jcm_destroy();
 
+    #ifndef JC_MEMORY_DISABLE
     jcl_assert(callbacks == 1, "Callback not called");
+    #endif
 }
 

@@ -2,7 +2,6 @@
 
 
 ## TODO
-- Implement JC_MEMORY_DISABLE
 - Use a better data structure
 
 jc_memory.h is a

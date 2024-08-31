@@ -30,7 +30,7 @@ int main(void) {
     foo = (char *) realloc(foo, 20);
 
     free(foo);
-    realloc(bar, 0);
+    bar = realloc(bar, 0);
 
     jcm_destroy();
 }

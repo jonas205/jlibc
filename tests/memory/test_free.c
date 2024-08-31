@@ -12,7 +12,7 @@ void callback(JcMemoryError *error) {
         case JcMemoryErrorType_UnknownPtr:
             jcli__log(error->file, error->line, JCL_LEVEL_ERROR, true,
                       "Tried to free unknown Pointer here");
-            jcl_assert(error->line == 36, "Not the correct wrong free detected");
+            jcl_assert(error->line == 37, "Not the correct wrong free detected");
             return;
         break;
         case JcMemoryErrorType_MemoryCorruption:
@@ -32,13 +32,17 @@ int main(void) {
     char *foo = (char *) malloc(10);
     free(foo);
 
+    #ifndef JC_MEMORY_DISABLE
     char bar[10];
     free(bar);  // Calls callback
+    #endif
 
     free(0);
 
     jcm_destroy();
 
+    #ifndef JC_MEMORY_DISABLE
     jcl_assert(callbacks == 1, "Callback not called");
+    #endif
 }
 

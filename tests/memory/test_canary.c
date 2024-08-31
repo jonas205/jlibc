@@ -51,12 +51,11 @@ int main(void) {
     for (int i = -10; i < 20; i++) {
         foo[i] = i;
     }
-    foo = realloc(foo, 20);
+    foo = realloc(foo, 20);  // Calls callbkac 6 times
     for (int i = -10; i < 30; i++) {
         foo[i] = i;
     }
-    free(foo);
-
+    free(foo);  // Calls callback 6 times
 
 
     jcm_destroy();

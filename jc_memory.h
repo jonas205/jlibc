@@ -100,13 +100,19 @@ typedef union {
 
 typedef void (*JcMemoryErrorCallback)(JcMemoryError *error);
 
+#ifndef JC_MEMORY_DISABLE
 JC_MEMORY_DEF void jcm_create(JcMemoryErrorCallback callback);
 JC_MEMORY_DEF void jcm_destroy(void);
+#else
+#define jcm_create(callback)
+#define jcm_destroy()
+#endif
 
+#ifndef JC_MEMORY_DISABLE
 JC_MEMORY_DEF void jcm_warn_unused *jcmi__malloc(size_t size, const char *file, uint32_t line);
 JC_MEMORY_DEF void jcmi__free(void *ptr, const char *file, uint32_t line);
 JC_MEMORY_DEF void jcm_warn_unused *jcmi__calloc(size_t nmemb, size_t size, const char *file, uint32_t line);
-JC_MEMORY_DEF void *jcmi__realloc(void *ptr, size_t size, const char *file, uint32_t line);
+JC_MEMORY_DEF void jcm_warn_unused *jcmi__realloc(void *ptr, size_t size, const char *file, uint32_t line);
 
 #ifndef JC_MEMORY_IMPLEMENTATION
 #define malloc(size) jcmi__malloc(size, __FILE__, __LINE__)
@@ -114,9 +120,18 @@ JC_MEMORY_DEF void *jcmi__realloc(void *ptr, size_t size, const char *file, uint
 #define calloc(nmemb, size) jcmi__calloc(nmemb, size, __FILE__, __LINE__)
 #define realloc(ptr, size) jcmi__realloc(ptr, size, __FILE__, __LINE__)
 #endif
+#endif
 
+#ifndef JC_MEMORY_DISABLE
+#ifndef JC_MEMORY_DISABLE_CANARY
 JC_MEMORY_DEF void jcmi__check_canary(void *ptr, const char *file, uint32_t line);
 #define jcm_check_canary(ptr) jcmi__check_canary(ptr, __FILE__, __LINE__)
+#else
+#define jcm_check_canary(ptr)
+#endif
+#else
+#define jcm_check_canary(ptr)
+#endif
 
 #ifdef __cplusplus
 }
@@ -131,6 +146,7 @@ JC_MEMORY_DEF void jcmi__check_canary(void *ptr, const char *file, uint32_t line
 extern "C" {
 #endif
 
+#ifndef JC_MEMORY_DISABLE
 #include <stdbool.h>
 
 #ifndef JC_MEMORY_CANARY
@@ -222,6 +238,7 @@ static bool jcmi__allocation_remove(void *ptr, size_t *size, const char **file, 
     return false;
 }
 
+#ifndef JC_MEMORY_DISABLE_CANARY
 static bool jcmi__allocation_get(void *ptr, size_t *size, const char **file, uint32_t *line) {
     for (size_t i = 0; i < JCI__MEMORY_ALLOCATION_LIST.count; i++) {
         Jci__MemoryAllocation *allocation = &JCI__MEMORY_ALLOCATION_LIST.allocations[i];
@@ -236,6 +253,7 @@ static bool jcmi__allocation_get(void *ptr, size_t *size, const char **file, uin
     }
     return false;
 }
+#endif
 
 JC_MEMORY_DEF void jcm_warn_unused *jcmi__malloc(size_t size, const char *file, uint32_t line) {
     #ifndef JC_MEMORY_DISABLE_CANARY
@@ -334,7 +352,7 @@ JC_MEMORY_DEF void jcm_warn_unused *jcmi__calloc(size_t nmemb, size_t size, cons
     return jcmi__malloc(nmemb * size, file, line);
 }
 
-JC_MEMORY_DEF void *jcmi__realloc(void *ptr, size_t size, const char *file, uint32_t line) {
+JC_MEMORY_DEF void jcm_warn_unused *jcmi__realloc(void *ptr, size_t size, const char *file, uint32_t line) {
     if (!ptr) {
         return jcmi__malloc(size, file, line);
     }
@@ -359,7 +377,7 @@ JC_MEMORY_DEF void *jcmi__realloc(void *ptr, size_t size, const char *file, uint
         error.kind = JcMemoryErrorType_UnknownPtr;
         error.file = file;
         error.line = line;
-        #ifndef JC_MEMORY_DISABLE_CANARY
+        #ifndef JC_MEMORY_DSABLE_CANARY
         error.size = size - JC_MEMORY_CANARY_SIZE * JC_MEMORY_CANARY_REPETITION * 2;
         #else
         error.size = size;
@@ -424,8 +442,8 @@ JC_MEMORY_DEF void *jcmi__realloc(void *ptr, size_t size, const char *file, uint
     return ptr;
 }
 
+#ifndef JC_MEMORY_DISABLE_CANARY
 JC_MEMORY_DEF void jcmi__check_canary(void *ptr, const char *file, uint32_t line) {
-    #ifndef JC_MEMORY_DISABLE_CANARY
     ptr = ((uint8_t *) ptr) - JC_MEMORY_CANARY_SIZE * JC_MEMORY_CANARY_REPETITION;
 
 
@@ -479,13 +497,14 @@ JC_MEMORY_DEF void jcmi__check_canary(void *ptr, const char *file, uint32_t line
         canary_left++;
         canary_right++;
     }
-    #endif
 }
+#endif
 
 #define malloc(size) jcmi__malloc(size, __FILE__, __LINE__)
 #define free(ptr) jcmi__free(ptr, __FILE__, __LINE__)
 #define calloc(nmemb, size) jcmi__calloc(nmemb, size, __FILE__, __LINE__)
 #define realloc(ptr, size) jcmi__realloc(ptr, size, __FILE__, __LINE__)
+#endif
 
 #ifdef __cplusplus
 }

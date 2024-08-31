@@ -15,7 +15,7 @@ void callback(JcMemoryError *error) {
         case JcMemoryErrorType_UnknownPtr:
             jcli__log(error->file, error->line, JCL_LEVEL_ERROR, true,
                       "Tried to free unknown Pointer here");
-            if (error->line == 46) {
+            if (error->line == 47) {
                 return;
             }
         break;
@@ -42,8 +42,11 @@ int main(void) {
     char *baz = (char *) realloc(NULL, 10);
     (void) baz;
 
+    #ifndef JC_MEMORY_DISABLE
     char fooo[10];
-    realloc(fooo, 0);  // Calls callback
+    char *fooooo = realloc(fooo, 0);  // Calls callback
+    (void) fooooo;
+    #endif
 
     char *foooo = realloc(NULL, 0);
     free(foooo);
@@ -64,9 +67,11 @@ int main(void) {
         jcl_assert(a[i] == i, "Realloc failed");
     }
 
-    realloc(a, 0);
+    a = realloc(a, 0);
 
     jcm_destroy();
+    #ifndef JC_MEMORY_DISABLE
     jcl_assert(callbacks == 2, "Callback not called");
+    #endif
 }
 

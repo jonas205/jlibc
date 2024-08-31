@@ -94,7 +94,7 @@ typedef union {
         // Location of the wrongfully written bytes.
         // Negative offset: To the left of the allocation
         // Positive offset: To the right of the allocation
-        int64_t offset; 
+        int64_t offset;
     } memory_corruption;
 } JcMemoryError;
 
@@ -106,7 +106,7 @@ JC_MEMORY_DEF void jcm_destroy(void);
 JC_MEMORY_DEF void jcm_warn_unused *jcmi__malloc(size_t size, const char *file, uint32_t line);
 JC_MEMORY_DEF void jcmi__free(void *ptr, const char *file, uint32_t line);
 JC_MEMORY_DEF void jcm_warn_unused *jcmi__calloc(size_t nmemb, size_t size, const char *file, uint32_t line);
-JC_MEMORY_DEF void jcm_warn_unused *jcmi__realloc(void *ptr, size_t size, const char *file, uint32_t line);
+JC_MEMORY_DEF void *jcmi__realloc(void *ptr, size_t size, const char *file, uint32_t line);
 
 #ifndef JC_MEMORY_IMPLEMENTATION
 #define malloc(size) jcmi__malloc(size, __FILE__, __LINE__)
@@ -189,13 +189,13 @@ JC_MEMORY_DEF void jcm_destroy(void) {
 
 static void jcmi__allocation_add(void *ptr, size_t size, const char *file, uint32_t line) {
     if (JCI__MEMORY_ALLOCATION_LIST.count == JCI__MEMORY_ALLOCATION_LIST.capacity) {
-        JCI__MEMORY_ALLOCATION_LIST.capacity = 
+        JCI__MEMORY_ALLOCATION_LIST.capacity =
             JCI__MEMORY_ALLOCATION_LIST.capacity == 0 ? 8 : JCI__MEMORY_ALLOCATION_LIST.capacity * 2;
         JCI__MEMORY_ALLOCATION_LIST.allocations = (Jci__MemoryAllocation *)
-            realloc(JCI__MEMORY_ALLOCATION_LIST.allocations, 
+            realloc(JCI__MEMORY_ALLOCATION_LIST.allocations,
                     JCI__MEMORY_ALLOCATION_LIST.capacity * sizeof(Jci__MemoryAllocation));
     }
-    Jci__MemoryAllocation *allocation = 
+    Jci__MemoryAllocation *allocation =
         &JCI__MEMORY_ALLOCATION_LIST.allocations[JCI__MEMORY_ALLOCATION_LIST.count++];
     allocation->ptr = ptr;
     allocation->size = size;
@@ -247,7 +247,7 @@ JC_MEMORY_DEF void jcm_warn_unused *jcmi__malloc(size_t size, const char *file, 
 
     #ifndef JC_MEMORY_DISABLE_CANARY
     uint32_t *canary_left = (uint32_t *) ptr;
-    uint32_t *canary_right = (uint32_t *) 
+    uint32_t *canary_right = (uint32_t *)
         (((uint8_t *) ptr) + size - JC_MEMORY_CANARY_SIZE * JC_MEMORY_CANARY_REPETITION);
     for (size_t i = 0; i < JC_MEMORY_CANARY_REPETITION; i++) {
         *canary_left++ = JC_MEMORY_CANARY;
@@ -289,7 +289,7 @@ JC_MEMORY_DEF void jcmi__free(void *ptr, const char *file, uint32_t line) {
 
     #ifndef JC_MEMORY_DISABLE_CANARY
     uint32_t *canary_left = (uint32_t *) ptr;
-    uint32_t *canary_right = (uint32_t *) 
+    uint32_t *canary_right = (uint32_t *)
         (((uint8_t *) ptr) + old_size - JC_MEMORY_CANARY_SIZE * JC_MEMORY_CANARY_REPETITION);
     for (size_t i = 0; i < JC_MEMORY_CANARY_REPETITION; i++) {
         if (*canary_left != JC_MEMORY_CANARY) {
@@ -301,7 +301,7 @@ JC_MEMORY_DEF void jcmi__free(void *ptr, const char *file, uint32_t line) {
             error.size = old_size - JC_MEMORY_CANARY_SIZE * JC_MEMORY_CANARY_REPETITION * 2;
             error.memory_corruption.expected = JC_MEMORY_CANARY;
             error.memory_corruption.gotten = *canary_left;
-            error.memory_corruption.offset = 
+            error.memory_corruption.offset =
                 (-JC_MEMORY_CANARY_REPETITION + i) * JC_MEMORY_CANARY_SIZE;
 
             JCI__MEMORY_CALLBACK(&error);
@@ -328,31 +328,19 @@ JC_MEMORY_DEF void jcmi__free(void *ptr, const char *file, uint32_t line) {
 }
 
 JC_MEMORY_DEF void jcm_warn_unused *jcmi__calloc(size_t nmemb, size_t size, const char *file, uint32_t line) {
-    #ifndef JC_MEMORY_DISABLE_CANARY
-    size += JC_MEMORY_CANARY_SIZE * JC_MEMORY_CANARY_REPETITION * 2;
-    #endif
-
-    void *ptr = calloc(nmemb, size);
-    jcmi__allocation_add(ptr, nmemb * size, file, line);
-
-    #ifndef JC_MEMORY_DISABLE_CANARY
-    uint32_t *canary_left = (uint32_t *) ptr;
-    uint32_t *canary_right = (uint32_t *) 
-        (((uint8_t *) ptr) + size - JC_MEMORY_CANARY_SIZE * JC_MEMORY_CANARY_REPETITION);
-    for (size_t i = 0; i < JC_MEMORY_CANARY_REPETITION; i++) {
-        *canary_left++ = JC_MEMORY_CANARY;
-        *canary_right++ = JC_MEMORY_CANARY;
+    if (size != 0 && nmemb > SIZE_MAX / size) {
+        return NULL;
     }
-
-    ptr = ((uint8_t *) ptr) + JC_MEMORY_CANARY_SIZE * JC_MEMORY_CANARY_REPETITION;
-    #endif
-
-    return ptr;
+    return jcmi__malloc(nmemb * size, file, line);
 }
 
-JC_MEMORY_DEF void jcm_warn_unused *jcmi__realloc(void *ptr, size_t size, const char *file, uint32_t line) {
+JC_MEMORY_DEF void *jcmi__realloc(void *ptr, size_t size, const char *file, uint32_t line) {
     if (!ptr) {
         return jcmi__malloc(size, file, line);
+    }
+    if (size == 0) {
+        jcmi__free(ptr, file, line);
+        return NULL;
     }
 
     #ifndef JC_MEMORY_DISABLE_CANARY
@@ -386,7 +374,7 @@ JC_MEMORY_DEF void jcm_warn_unused *jcmi__realloc(void *ptr, size_t size, const 
 
     #ifndef JC_MEMORY_DISABLE_CANARY
     uint32_t *canary_left = (uint32_t *) ptr;
-    uint32_t *canary_right = (uint32_t *) 
+    uint32_t *canary_right = (uint32_t *)
         (((uint8_t *) ptr) + old_size - JC_MEMORY_CANARY_SIZE * JC_MEMORY_CANARY_REPETITION);
     for (size_t i = 0; i < JC_MEMORY_CANARY_REPETITION; i++) {
         if (*canary_left != JC_MEMORY_CANARY) {
@@ -398,7 +386,7 @@ JC_MEMORY_DEF void jcm_warn_unused *jcmi__realloc(void *ptr, size_t size, const 
             error.size = old_size - JC_MEMORY_CANARY_SIZE * JC_MEMORY_CANARY_REPETITION * 2;
             error.memory_corruption.expected = JC_MEMORY_CANARY;
             error.memory_corruption.gotten = *canary_left;
-            error.memory_corruption.offset = 
+            error.memory_corruption.offset =
                 (-JC_MEMORY_CANARY_REPETITION + i) * JC_MEMORY_CANARY_SIZE;
 
             JCI__MEMORY_CALLBACK(&error);
@@ -421,7 +409,7 @@ JC_MEMORY_DEF void jcm_warn_unused *jcmi__realloc(void *ptr, size_t size, const 
     }
 
     uint32_t *new_canary_left = (uint32_t *) ptr;
-    uint32_t *new_canary_right = (uint32_t *) 
+    uint32_t *new_canary_right = (uint32_t *)
         (((uint8_t *) ptr) + size - JC_MEMORY_CANARY_SIZE * JC_MEMORY_CANARY_REPETITION);
 
     for (size_t i = 0; i < JC_MEMORY_CANARY_REPETITION; i++) {
@@ -458,7 +446,7 @@ JC_MEMORY_DEF void jcmi__check_canary(void *ptr, const char *file, uint32_t line
     }
 
     uint32_t *canary_left = (uint32_t *) ptr;
-    uint32_t *canary_right = (uint32_t *) 
+    uint32_t *canary_right = (uint32_t *)
         (((uint8_t *) ptr) + old_size - JC_MEMORY_CANARY_SIZE * JC_MEMORY_CANARY_REPETITION);
     for (size_t i = 0; i < JC_MEMORY_CANARY_REPETITION; i++) {
         if (*canary_left != JC_MEMORY_CANARY) {
@@ -470,7 +458,7 @@ JC_MEMORY_DEF void jcmi__check_canary(void *ptr, const char *file, uint32_t line
             error.size = old_size - JC_MEMORY_CANARY_SIZE * JC_MEMORY_CANARY_REPETITION * 2;
             error.memory_corruption.expected = JC_MEMORY_CANARY;
             error.memory_corruption.gotten = *canary_left;
-            error.memory_corruption.offset = 
+            error.memory_corruption.offset =
                 (-JC_MEMORY_CANARY_REPETITION + i) * JC_MEMORY_CANARY_SIZE;
 
             JCI__MEMORY_CALLBACK(&error);

@@ -2,7 +2,6 @@
 MAKEFLAGS += --no-print-directory
 
 EXAMPLES = corruption no_free bad_free
-
 CC = gcc
 EXTRA_FLAGS =
 CFLAGS = -Wall -Wextra -Werror -pedantic -std=c17 $(EXTRA_FLAGS)

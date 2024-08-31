@@ -1,5 +1,3 @@
-#define JC_MEMORY_IMPLEMENTATION
-#define JC_LOG_IMPLEMENTATION
 #include "memory.h"
 
 void callback(JcMemoryError *error) {
@@ -20,4 +18,20 @@ void callback(JcMemoryError *error) {
                       error->memory_corruption.offset);
         break;
     }
+    jcl_assert(false, "Nothing bad should happen in this test");
 }
+
+int main(void) {
+    jcm_create(&callback);
+
+    char *foo = (char *) malloc(10);
+    char *bar = (char *) calloc(20, 10);
+
+    foo = (char *) realloc(foo, 20);
+
+    free(foo);
+    realloc(bar, 0);
+
+    jcm_destroy();
+}
+

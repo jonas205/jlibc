@@ -40,7 +40,7 @@ extern "C" {
 
 #if defined(_WIN32) || defined(WIN32)
 #define JC_MEMORY_WINDOWS
-elif __APPLE__
+#elif __APPLE__
 #define JC_MEMORY_APPLE
 #endif
 

@@ -133,6 +133,12 @@ extern "C" {
 #include <stdlib.h>
 #include <string.h>
 
+JC_UTIL_DEF size_t jcui__strnlen(const char *str, size_t maxlen) {
+     size_t i;
+     for (i = 0; i < maxlen && str[i]; i++) {}
+     return i;
+}
+
 JC_UTIL_DEF int64_t jcu_gcd(int64_t a, int64_t b) {
     if (b == 0) {
         return a;
@@ -159,7 +165,7 @@ static bool jcui__num2str(char *buf, size_t buf_size, size_t pos, int64_t n) {
         if (!jcui__num2str(buf, buf_size, pos, n)) {
             return false;
         }
-        size_t len = strlen(buf);
+        size_t len = jcui__strnlen(buf, buf_size);
         size_t written = snprintf(buf + len, buf_size - len, " and eight");
         return written < buf_size;
     }

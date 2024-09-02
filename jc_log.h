@@ -162,9 +162,13 @@ JC_LOG_DEF const char *jcl_level_str(JclLevel level);
 
 #if !defined(JC_DISABLE_LOGGING) || !defined(JC_DISABLE_ASSERTS)
 JC_LOG_DEF jcl_warn_unused bool jcl_file(const char *file);  // NULL will disable file logging; check errno on fail
+JC_LOG_DEF jcl_warn_unused FILE *jcl_file_ptr(void);
 #else
 jcl_warn_unused jcl_force_inline bool jcl_file(const char *file) {
     return true;
+}
+jcl_warn_unused jcl_force_inline FILE *jcl_file_ptr(void) {
+    return NULL;
 }
 #endif
 jcl_warn_unused jcl_force_inline bool jcl_file_close(void) {  // die / assert call this themself; check errno on fail

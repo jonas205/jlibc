@@ -24,11 +24,11 @@ int main(void) {
     jcm_create(&callback);  // Call once at program start
 
     const char *str_1 = (char*) malloc(42);  // Not Freed, caught by jcm_destroy()
-    (void) str;
+    (void) str_1;
 
-    const char *str_2 = (char*) malloc(10);
+    char *str_2 = (char*) malloc(10);
     str_2[50] = 'a';  // Illegal memory access
-    free();  // Catches access and calls callback
+    free(str_2);  // Catches access and calls callback
 
     jcm_destroy();  // Call once at program end
 }

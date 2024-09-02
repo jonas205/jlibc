@@ -496,6 +496,12 @@ JC_LOG_DEF int jcli__log(const char *file, uint32_t line, JclLevel level, bool n
 #endif  // JC_DISABLE_LOGGING
 }
 
+#if !defined(JC_DISABLE_LOGGING) || !defined(JC_DISABLE_ASSERTS)
+JC_LOG_DEF jcl_warn_unused FILE *jcl_file_ptr(void) {
+    return JCI__LOG_FILE_PTR;
+}
+#endif
+
 #ifdef __cplusplus
 #undef noreturn
 }

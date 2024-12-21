@@ -67,7 +67,7 @@ class Logger {
     }
     ~Logger() { m_file.close(); }
 
-    inline void log_die() {
+    [[noreturn]] inline void log_die() {
         this->~Logger();
         exit(1);
     }
